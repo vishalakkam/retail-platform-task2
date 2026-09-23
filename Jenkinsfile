@@ -90,7 +90,7 @@ pipeline {
             }
         }
 
-        stage('Test') {
+       stage('Test') {
     when {
         expression {
             params.RUN_TESTS == 'YES'
@@ -105,7 +105,6 @@ pipeline {
         echo 'Tests completed successfully'
     }
 }
-
         stage('Production Confirmation') {
             when {
                 expression {
