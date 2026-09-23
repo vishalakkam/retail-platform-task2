@@ -2,18 +2,24 @@ pipeline {
     agent any
 
     parameters {
-        choice(
-            name: 'ENVIRONMENT',
-            choices: ['DEV', 'UAT', 'PRODUCTION'],
-            description: 'Select deployment environment'
-        )
+    choice(
+        name: 'ENVIRONMENT',
+        choices: ['DEV', 'UAT', 'PRODUCTION'],
+        description: 'Select deployment environment'
+    )
 
-        choice(
-            name: 'ACTION',
-            choices: ['DEPLOY', 'ROLLBACK'],
-            description: 'Select deployment action'
-        )
-    }
+    choice(
+        name: 'ACTION',
+        choices: ['DEPLOY', 'ROLLBACK'],
+        description: 'Select deployment action'
+    )
+
+    string(
+        name: 'VERSION',
+        defaultValue: '5.0.1',
+        description: 'Docker image version'
+    )
+}
 
     stages {
 
