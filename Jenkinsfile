@@ -7,6 +7,12 @@ pipeline {
             choices: ['DEV', 'UAT', 'PRODUCTION'],
             description: 'Select deployment environment'
         )
+
+        choice(
+            name: 'ACTION',
+            choices: ['DEPLOY', 'ROLLBACK'],
+            description: 'Select deployment action'
+        )
     }
 
     stages {
