@@ -10,10 +10,10 @@ pipeline {
         }
 
         stage('Build') {
-            steps {
-                echo 'Building application'
-            }
-        }
+    steps {
+        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t customer-app:5.0.1 .'
+    }
+}
 
         stage('Test') {
             steps {
