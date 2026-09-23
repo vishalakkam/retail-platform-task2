@@ -91,20 +91,20 @@ pipeline {
         }
 
         stage('Test') {
-            when {
-                expression {
-                    params.RUN_TESTS == 'YES'
-                }
-            }
-
-            steps {
-                echo 'Running application tests...'
-
-                bat 'python -m compileall app'
-
-                echo 'Tests completed successfully'
-            }
+    when {
+        expression {
+            params.RUN_TESTS == 'YES'
         }
+    }
+
+    steps {
+        echo 'Running application tests...'
+
+        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run --rm customer-app:%VERSION% python -m compileall /app'
+
+        echo 'Tests completed successfully'
+    }
+}
 
         stage('Production Confirmation') {
             when {
