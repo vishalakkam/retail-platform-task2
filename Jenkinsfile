@@ -196,15 +196,11 @@ if errorlevel 1 (
 powershell -Command "(Invoke-WebRequest -UseBasicParsing http://localhost:${env.HOST_PORT}/health).Content"
 """
 
-<<<<<<< HEAD
-                echo 'Application validation completed successfully'
-=======
                 bat """
 powershell -Command "(Invoke-WebRequest -UseBasicParsing http://localhost:${env.HOST_PORT}/db-test).Content"
 """
 
                 echo 'Application and database validation completed successfully'
->>>>>>> release
             }
         }
     }
@@ -221,4 +217,3 @@ powershell -Command "(Invoke-WebRequest -UseBasicParsing http://localhost:${env.
         }
     }
 }
-
