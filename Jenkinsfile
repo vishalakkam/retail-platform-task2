@@ -19,6 +19,12 @@ pipeline {
         defaultValue: '5.0.1',
         description: 'Docker image version'
     )
+
+    choice(
+        name: 'RUN_TESTS',
+        choices: ['YES', 'NO'],
+        description: 'Run application tests'
+    )
 }
 
     stages {
