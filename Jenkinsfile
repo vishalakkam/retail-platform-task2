@@ -17,7 +17,7 @@ pipeline {
 
         string(
             name: 'VERSION',
-            defaultValue: '5.0.1',
+            defaultValue: '5.0.2',
             description: 'Docker image version to deploy or rollback to'
         )
 
@@ -35,25 +35,31 @@ pipeline {
                 script {
 
                     if (params.ENVIRONMENT == 'DEV') {
+
                         env.DEPLOY_BRANCH = 'develop'
                         env.CONTAINER_NAME = 'customer-app-dev'
                         env.HOST_PORT = '8081'
                         env.NETWORK_NAME = 'customer-dev-net'
                         env.DB_CONTAINER = 'customer-db-dev'
+                        env.DB_PASSWORD = 'customer123'
 
                     } else if (params.ENVIRONMENT == 'UAT') {
+
                         env.DEPLOY_BRANCH = 'release'
                         env.CONTAINER_NAME = 'customer-app-uat'
                         env.HOST_PORT = '8082'
                         env.NETWORK_NAME = 'customer-uat-net'
                         env.DB_CONTAINER = 'customer-db-uat'
+                        env.DB_PASSWORD = 'uatcustomer123'
 
                     } else {
+
                         env.DEPLOY_BRANCH = 'main'
                         env.CONTAINER_NAME = 'customer-app-prod'
                         env.HOST_PORT = '8083'
                         env.NETWORK_NAME = 'customer-prod-net'
                         env.DB_CONTAINER = 'customer-db-prod'
+                        env.DB_PASSWORD = 'prodcustomer123'
                     }
 
                     echo "Environment: ${params.ENVIRONMENT}"
@@ -65,6 +71,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Checkout') {
             steps {
@@ -78,6 +85,7 @@ pipeline {
             }
         }
 
+
         stage('Build') {
             when {
                 expression {
@@ -86,25 +94,30 @@ pipeline {
             }
 
             steps {
+                echo "Building Docker image version ${params.VERSION}..."
+
                 bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t customer-app:%VERSION% .'
             }
         }
 
-       stage('Test') {
-    when {
-        expression {
-            params.RUN_TESTS == 'YES'
+
+        stage('Test') {
+            when {
+                expression {
+                    params.RUN_TESTS == 'YES'
+                }
+            }
+
+            steps {
+                echo 'Running application tests inside Docker...'
+
+                bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run --rm customer-app:%VERSION% python -m compileall /app'
+
+                echo 'Tests completed successfully'
+            }
         }
-    }
 
-    steps {
-        echo 'Running application tests...'
 
-        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run --rm customer-app:%VERSION% python -m compileall /app'
-
-        echo 'Tests completed successfully'
-    }
-}
         stage('Production Confirmation') {
             when {
                 expression {
@@ -120,6 +133,7 @@ pipeline {
                 )
             }
         }
+
 
         stage('Deploy / Rollback') {
             steps {
@@ -143,10 +157,10 @@ if errorlevel 1 (
 """
 
                         bat """
-"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name ${env.CONTAINER_NAME} --network ${env.NETWORK_NAME} -p ${env.HOST_PORT}:8081 customer-app:%VERSION%
+"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name ${env.CONTAINER_NAME} --network ${env.NETWORK_NAME} -p ${env.HOST_PORT}:8081 -e DB_HOST=${env.DB_CONTAINER} -e DB_USER=customeruser -e DB_PASSWORD=${env.DB_PASSWORD} -e DB_NAME=customerdb customer-app:%VERSION%
 """
 
-                        echo "Deployment completed successfully"
+                        echo 'Deployment completed successfully'
 
                     } else {
 
@@ -159,17 +173,19 @@ if errorlevel 1 (
 """
 
                         bat """
-"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name ${env.CONTAINER_NAME} --network ${env.NETWORK_NAME} -p ${env.HOST_PORT}:8081 customer-app:%VERSION%
+"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name ${env.CONTAINER_NAME} --network ${env.NETWORK_NAME} -p ${env.HOST_PORT}:8081 -e DB_HOST=${env.DB_CONTAINER} -e DB_USER=customeruser -e DB_PASSWORD=${env.DB_PASSWORD} -e DB_NAME=customerdb customer-app:%VERSION%
 """
 
-                        echo "Rollback completed successfully"
+                        echo 'Rollback completed successfully'
                     }
                 }
             }
         }
 
+
         stage('Validate') {
             steps {
+
                 echo "Validating ${params.ENVIRONMENT} environment..."
 
                 bat """
@@ -180,12 +196,18 @@ if errorlevel 1 (
 powershell -Command "(Invoke-WebRequest -UseBasicParsing http://localhost:${env.HOST_PORT}/health).Content"
 """
 
-                echo "Application validation completed successfully"
+                bat """
+powershell -Command "(Invoke-WebRequest -UseBasicParsing http://localhost:${env.HOST_PORT}/db-test).Content"
+"""
+
+                echo 'Application and database validation completed successfully'
             }
         }
     }
 
+
     post {
+
         success {
             echo 'CI/CD Pipeline completed successfully.'
         }
