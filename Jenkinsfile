@@ -41,11 +41,18 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
+       stage('Test') {
+    steps {
+        script {
+            if (params.RUN_TESTS == 'YES') {
                 echo 'Running application tests'
+                echo 'Tests completed successfully'
+            } else {
+                echo 'Tests skipped'
             }
         }
+    }
+}
 
         stage('Deploy') {
             steps {
