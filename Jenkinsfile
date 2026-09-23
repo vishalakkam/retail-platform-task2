@@ -58,24 +58,36 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    if (params.ACTION == 'DEPLOY') {
-                        echo 'Deployment requested'
-                        echo "Environment: ${params.ENVIRONMENT}"
-                        echo "Version to deploy: ${params.VERSION}"
 
-                        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" rm -f customer-app-jenkins 2>NUL'
+    def deployBranch = ''
+    def containerName = ''
+    def hostPort = ''
+    def networkName = ''
 
-                        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name customer-app-jenkins -p 8084:8081 customer-app:%VERSION%'
-                    } else {
-                        echo 'Rollback requested'
-                        echo "Environment: ${params.ENVIRONMENT}"
-                        echo "Version to rollback to: ${params.VERSION}"
+    if (params.ENVIRONMENT == 'DEV') {
+        deployBranch = 'develop'
+        containerName = 'customer-app-dev'
+        hostPort = '8081'
+        networkName = 'customer-dev-net'
+    } else if (params.ENVIRONMENT == 'UAT') {
+        deployBranch = 'release'
+        containerName = 'customer-app-uat'
+        hostPort = '8082'
+        networkName = 'customer-uat-net'
+    } else {
+        deployBranch = 'main'
+        containerName = 'customer-app-prod'
+        hostPort = '8083'
+        networkName = 'customer-prod-net'
+    }
 
-                        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" rm -f customer-app-jenkins 2>NUL'
+    echo "Environment: ${params.ENVIRONMENT}"
+    echo "Branch: ${deployBranch}"
+    echo "Container: ${containerName}"
+    echo "Port: ${hostPort}"
+    echo "Network: ${networkName}"
 
-                        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name customer-app-jenkins -p 8084:8081 customer-app:%VERSION%'
-                    }
-                }
+    if (params.ACTION == 'DEPLOY') {
             }
         }
 
