@@ -1,5 +1,6 @@
 from flask import Flask
 import mysql.connector
+import os
 
 app = Flask(__name__)
 
@@ -15,12 +16,11 @@ def health():
 def db_test():
     try:
         connection = mysql.connector.connect(
-            host="customer-db-dev",
-            user="customeruser",
-            password="customer123",
-            database="customerdb"
-        )
-
+    host=os.getenv("DB_HOST", "customer-db-dev"),
+    user=os.getenv("DB_USER", "customeruser"),
+    password=os.getenv("DB_PASSWORD", "customer123"),
+    database=os.getenv("DB_NAME", "customerdb")
+)
         connection.close()
         return "Database connection successful"
 
