@@ -2,30 +2,31 @@ pipeline {
     agent any
 
     parameters {
-    choice(
-        name: 'ENVIRONMENT',
-        choices: ['DEV', 'UAT', 'PRODUCTION'],
-        description: 'Select deployment environment'
-    )
 
-    choice(
-        name: 'ACTION',
-        choices: ['DEPLOY', 'ROLLBACK'],
-        description: 'Select deployment action'
-    )
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['DEV', 'UAT', 'PRODUCTION'],
+            description: 'Select deployment environment'
+        )
 
-    string(
-        name: 'VERSION',
-        defaultValue: '5.0.1',
-        description: 'Docker image version'
-    )
+        choice(
+            name: 'ACTION',
+            choices: ['DEPLOY', 'ROLLBACK'],
+            description: 'Select deployment action'
+        )
 
-    choice(
-        name: 'RUN_TESTS',
-        choices: ['YES', 'NO'],
-        description: 'Run application tests'
-    )
-}
+        string(
+            name: 'VERSION',
+            defaultValue: '5.0.1',
+            description: 'Docker image version'
+        )
+
+        choice(
+            name: 'RUN_TESTS',
+            choices: ['YES', 'NO'],
+            description: 'Run application tests'
+        )
+    }
 
     stages {
 
@@ -37,33 +38,51 @@ pipeline {
 
         stage('Build') {
             steps {
-                bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t customer-app:5.0.1 .'
+                bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t customer-app:%VERSION% .'
             }
         }
 
-       stage('Test') {
-    steps {
-        script {
-            if (params.RUN_TESTS == 'YES') {
-                echo 'Running application tests'
-                echo 'Tests completed successfully'
-            } else {
-                echo 'Tests skipped'
+        stage('Test') {
+            steps {
+                script {
+                    if (params.RUN_TESTS == 'YES') {
+                        echo 'Running application tests'
+                        echo 'Tests completed successfully'
+                    } else {
+                        echo 'Tests skipped'
+                    }
+                }
             }
         }
-    }
-}
 
         stage('Deploy') {
             steps {
-                bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" rm -f customer-app-jenkins 2>NUL'
-                bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name customer-app-jenkins -p 8084:8081 customer-app:5.0.1'
+                script {
+                    if (params.ACTION == 'DEPLOY') {
+                        echo 'Deployment requested'
+                        echo "Environment: ${params.ENVIRONMENT}"
+                        echo "Version to deploy: ${params.VERSION}"
+
+                        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" rm -f customer-app-jenkins 2>NUL'
+
+                        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name customer-app-jenkins -p 8084:8081 customer-app:%VERSION%'
+                    } else {
+                        echo 'Rollback requested'
+                        echo "Environment: ${params.ENVIRONMENT}"
+                        echo "Version to rollback to: ${params.VERSION}"
+
+                        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" rm -f customer-app-jenkins 2>NUL'
+
+                        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name customer-app-jenkins -p 8084:8081 customer-app:%VERSION%'
+                    }
+                }
             }
         }
 
         stage('Validate') {
             steps {
                 echo 'Validating application'
+                bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" ps'
             }
         }
 
