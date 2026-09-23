@@ -1,4 +1,3 @@
-```groovy
 pipeline {
     agent any
 
@@ -204,4 +203,4 @@ powershell -Command "(Invoke-WebRequest -UseBasicParsing http://localhost:${env.
         }
     }
 }
-```
+
