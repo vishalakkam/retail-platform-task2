@@ -21,11 +21,12 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
-            steps {
-                echo 'Deploying application'
-            }
-        }
+       stage('Deploy') {
+    steps {
+        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" rm -f customer-app-jenkins 2>NUL'
+        bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name customer-app-jenkins -p 8084:8081 customer-app:5.0.1'
+    }
+}
 
         stage('Validate') {
             steps {
