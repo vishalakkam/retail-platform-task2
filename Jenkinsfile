@@ -1,3 +1,4 @@
+```groovy
 pipeline {
     agent any
 
@@ -35,6 +36,7 @@ pipeline {
                 script {
 
                     if (params.ENVIRONMENT == 'DEV') {
+
                         env.DEPLOY_BRANCH = 'develop'
                         env.CONTAINER_NAME = 'customer-app-dev'
                         env.HOST_PORT = '8081'
@@ -42,6 +44,7 @@ pipeline {
                         env.DB_CONTAINER = 'customer-db-dev'
 
                     } else if (params.ENVIRONMENT == 'UAT') {
+
                         env.DEPLOY_BRANCH = 'release'
                         env.CONTAINER_NAME = 'customer-app-uat'
                         env.HOST_PORT = '8082'
@@ -49,6 +52,7 @@ pipeline {
                         env.DB_CONTAINER = 'customer-db-uat'
 
                     } else {
+
                         env.DEPLOY_BRANCH = 'main'
                         env.CONTAINER_NAME = 'customer-app-prod'
                         env.HOST_PORT = '8083'
@@ -86,6 +90,8 @@ pipeline {
             }
 
             steps {
+                echo "Building Docker image version ${params.VERSION}..."
+
                 bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t customer-app:%VERSION% .'
             }
         }
@@ -98,9 +104,9 @@ pipeline {
             }
 
             steps {
-                echo 'Running application tests...'
+                echo 'Running application tests inside Docker...'
 
-                bat 'python -m compileall app'
+                bat '"C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run --rm customer-app:%VERSION% python -m compileall /app'
 
                 echo 'Tests completed successfully'
             }
@@ -147,7 +153,7 @@ if errorlevel 1 (
 "C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name ${env.CONTAINER_NAME} --network ${env.NETWORK_NAME} -p ${env.HOST_PORT}:8081 customer-app:%VERSION%
 """
 
-                        echo "Deployment completed successfully"
+                        echo 'Deployment completed successfully'
 
                     } else {
 
@@ -163,7 +169,7 @@ if errorlevel 1 (
 "C:\\Users\\Vishal Akkam\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run -d --name ${env.CONTAINER_NAME} --network ${env.NETWORK_NAME} -p ${env.HOST_PORT}:8081 customer-app:%VERSION%
 """
 
-                        echo "Rollback completed successfully"
+                        echo 'Rollback completed successfully'
                     }
                 }
             }
@@ -171,6 +177,7 @@ if errorlevel 1 (
 
         stage('Validate') {
             steps {
+
                 echo "Validating ${params.ENVIRONMENT} environment..."
 
                 bat """
@@ -181,12 +188,13 @@ if errorlevel 1 (
 powershell -Command "(Invoke-WebRequest -UseBasicParsing http://localhost:${env.HOST_PORT}/health).Content"
 """
 
-                echo "Application validation completed successfully"
+                echo 'Application validation completed successfully'
             }
         }
     }
 
     post {
+
         success {
             echo 'CI/CD Pipeline completed successfully.'
         }
@@ -196,3 +204,4 @@ powershell -Command "(Invoke-WebRequest -UseBasicParsing http://localhost:${env.
         }
     }
 }
+```
