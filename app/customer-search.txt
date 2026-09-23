@@ -1,0 +1,7 @@
+Customer Search Feature
+
+Search by Customer ID:
+1. Take customer ID as input.
+2. Search the customer data.
+3. If ID exists, display customer details.
+4. If ID does not exist, display "Customer not found".
